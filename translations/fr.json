@@ -1,0 +1,52 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configurer Enhanced Input",
+        "description": "Ajouter l'intégration Enhanced Input.",
+        "data": {}
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Configurer Enhanced Input",
+        "description": "Définir la longueur maximale du texte pour les entités Enhanced Input.",
+        "data": {
+          "max_text_length": "Longueur maximale du texte"
+        }
+      }
+    }
+  },
+  "services": {
+    "create_input_text": {
+      "name": "Créer un blob de texte Enhanced Input",
+      "description": "Créer ou mettre à jour une entité de texte enhanced input.",
+      "fields": {
+        "name": {
+          "name": "Nom",
+          "description": "Le nom de l'entité de texte enhanced input."
+        },
+        "title": {
+          "name": "Titre",
+          "description": "Le titre à afficher comme état de l'entité de texte enhanced input."
+        },
+        "text": {
+          "name": "Texte",
+          "description": "Le texte long à stocker dans l'entité de texte enhanced input."
+        }
+      }
+    },
+    "delete_input_text": {
+      "name": "Supprimer un blob de texte Enhanced Input",
+      "description": "Supprimer une entité de texte enhanced input.",
+      "fields": {
+        "name": {
+          "name": "Nom",
+          "description": "Le nom de l'entité de texte enhanced input à supprimer."
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Skonfiguruj Enhanced Input",
+        "description": "Dodaj integrację Enhanced Input.",
+        "data": {}
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Skonfiguruj Enhanced Input",
+        "description": "Ustaw maksymalną długość tekstu dla encji Enhanced Input.",
+        "data": {
+          "max_text_length": "Maksymalna długość tekstu"
+        }
+      }
+    }
+  },
+  "services": {
+    "create_input_text": {
+      "name": "Utwórz blob tekstowy Enhanced Input",
+      "description": "Utwórz lub zaktualizuj encję tekstową enhanced input.",
+      "fields": {
+        "name": {
+          "name": "Nazwa",
+          "description": "Nazwa encji tekstowej enhanced input."
+        },
+        "title": {
+          "name": "Tytuł",
+          "description": "Tytuł wyświetlany jako stan encji tekstowej enhanced input."
+        },
+        "text": {
+          "name": "Tekst",
+          "description": "Długi tekst do przechowania w encji tekstowej enhanced input."
+        }
+      }
+    },
+    "delete_input_text": {
+      "name": "Usuń blob tekstowy Enhanced Input",
+      "description": "Usuń encję tekstową enhanced input.",
+      "fields": {
+        "name": {
+          "name": "Nazwa",
+          "description": "Nazwa encji tekstowej enhanced input do usunięcia."
+        }
+      }
+    }
+  }
+}

@@ -16,10 +16,8 @@ This Home Assistant integration provides a service to create and manage long tex
 ### Installation via HACS (Recommended)
 1. Open HACS in your Home Assistant dashboard.
 2. Until this repository is part of HACS by default, you need to add it as a custom repository. (working on it)
-3. Go to *Integrations* > *Add custom repository* and enter:  ``` https://github.com/yohaybn/HomeAssistant-Enhanced-Input ```
+3. Go to *Integrations* > *Add custom repository* and enter:  ``` https://github.com/devjourney/HomeAssistant-Enhanced-Input ```
 4. Once added, search for "Enhanced-Input" in HACS and install it.
-
-[![My Home Assistant](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?repository=HomeAssistant-Enhanced-Input&owner=yohaybn)
 
 ### Manual Installation
     * Copy the `enhanced_input` folder into your Home Assistant's `custom_components` directory.
@@ -64,8 +62,6 @@ Deletes a long text input entity.
 
 **Example:**
 
-
-
 ```yaml
 service: enhanced_input.delete_input_text
 data:
@@ -84,13 +80,11 @@ Each long text input entity has the following attributes:
 
 This automation demonstrates how to generate content using an AI LLM (e.g., using the `conversation.agent` service) and store the response in a long text input entity.
 
-
-
 ```yaml
 automation:
   - alias: Store AI Response
     trigger:
-      - platform: event
+      - platform: eventv
         event_type: call_service
         event_data:
           domain: conversation
@@ -125,8 +119,6 @@ You can display the long text stored in your entity using a Markdown card in you
 
 **Example Card Configuration:**
 
-
-
 ```yaml
 type: markdown
 content: |
@@ -139,25 +131,3 @@ content: |
 ```
 
 Replace `enhanced_input.ai_response` with the actual entity ID of your long text input.
-## TODO
-
--   Implement an enhanced input select entity.
--   Gather user suggestions for additional features and improvements.
-
-## User Suggestions
-
-We encourage users to suggest their ideas for enhancing this integration. Please open an issue on GitHub with your suggestions.
-
-----
-
-### Donate
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/yohaybn)
-
-If you find it helpful or interesting, consider supporting me by buying me a coffee or starring the project on GitHub! ☕⭐
-Your support helps me improve and maintain this project while keeping me motivated. Thank you! ❤️
-
-
-
-## Contributing
-
-Contributions are welcome! If you find any issues or have suggestions for improvements, please open an issue or submit a pull request on GitHub.

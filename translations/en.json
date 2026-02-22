@@ -3,37 +3,48 @@
     "step": {
       "user": {
         "title": "Set up Enhanced Input",
-        "description": "Add Enhanced Input integration.",
+        "description": "Add the Enhanced Input integration.",
         "data": {}
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Configure Enhanced Input",
+        "description": "Set the maximum text length for Enhanced Input entities.",
+        "data": {
+          "max_text_length": "Maximum text length"
+        }
       }
     }
   },
   "services": {
     "create_input_text": {
-      "name": "Create Input Text",
-      "description": "Create or update an input text entity.",
+      "name": "Create an Enhanced Input Text Blob",
+      "description": "Create or update an enhanced input text entity.",
       "fields": {
         "name": {
           "name": "Name",
-          "description": "The name of the input text entity."
+          "description": "The name of the enhanced input text entity."
         },
         "title": {
           "name": "Title",
-          "description": "The title to display as the state."
+          "description": "The title to display as the state of the enhanced input text entity."
         },
         "text": {
           "name": "Text",
-          "description": "The long text to store in the entity."
+          "description": "The long text to store in the enhanced input text entity."
         }
       }
     },
     "delete_input_text": {
-      "name": "Delete Input Text",
-      "description": "Delete an input text entity.",
+      "name": "Delete an Enhanced Input Text Blob",
+      "description": "Delete an enhanced input text entity.",
       "fields": {
         "name": {
           "name": "Name",
-          "description": "The name of the input text entity to delete."
+          "description": "The name of the enhanced input text entity to delete."
         }
       }
     }

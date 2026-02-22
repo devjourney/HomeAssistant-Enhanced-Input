@@ -1,0 +1,52 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Enhanced Input beállítása",
+        "description": "Az Enhanced Input integráció hozzáadása.",
+        "data": {}
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Enhanced Input konfigurálása",
+        "description": "Az Enhanced Input entitások maximális szöveghosszának beállítása.",
+        "data": {
+          "max_text_length": "Maximális szöveghossz"
+        }
+      }
+    }
+  },
+  "services": {
+    "create_input_text": {
+      "name": "Enhanced Input szövegblob létrehozása",
+      "description": "Enhanced input szövegentitás létrehozása vagy frissítése.",
+      "fields": {
+        "name": {
+          "name": "Név",
+          "description": "Az enhanced input szövegentitás neve."
+        },
+        "title": {
+          "name": "Cím",
+          "description": "Az enhanced input szövegentitás állapotaként megjelenítendő cím."
+        },
+        "text": {
+          "name": "Szöveg",
+          "description": "Az enhanced input szövegentitásban tárolandó hosszú szöveg."
+        }
+      }
+    },
+    "delete_input_text": {
+      "name": "Enhanced Input szövegblob törlése",
+      "description": "Enhanced input szövegentitás törlése.",
+      "fields": {
+        "name": {
+          "name": "Név",
+          "description": "A törlendő enhanced input szövegentitás neve."
+        }
+      }
+    }
+  }
+}

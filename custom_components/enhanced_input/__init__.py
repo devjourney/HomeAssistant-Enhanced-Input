@@ -8,6 +8,10 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.storage import Store
 from homeassistant.helpers.device_registry import DeviceInfo  # For device_info
 from typing import Any  # For type hinting
+import voluptuous as vol
+from homeassistant.helpers import config_validation as cv
+from homeassistant.exceptions import HomeAssistantError
+from homeassistant.util import slugify
 
 DOMAIN = "enhanced_input"
 SERVICE_CREATE_INPUT_TEXT = "create_input_text"
@@ -17,6 +21,22 @@ CONF_TITLE = "title"
 STORAGE_KEY = "enhanced_input_storage"
 STORAGE_VERSION = 1
 DEFAULT_NAME = "Enhanced Input"
+CONF_MAX_TEXT_LENGTH = "max_text_length"
+DEFAULT_MAX_TEXT_LENGTH = 2000
+
+SERVICE_CREATE_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_NAME): cv.string,
+        vol.Optional(CONF_TEXT, default=""): cv.string,
+        vol.Optional(CONF_TITLE): cv.string,
+    }
+)
+
+SERVICE_DELETE_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_NAME): cv.string,
+    }
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -39,13 +59,30 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     hass.data[DOMAIN][entry.entry_id] = {}
 
     store = Store[dict[str, Any]](hass, STORAGE_VERSION, STORAGE_KEY)
-    loaded_data_from_store = await store.async_load()
+    try:
+        loaded_data_from_store = await store.async_load()
+    except Exception as err:
+        _LOGGER.error(
+            "Failed to load stored data for %s, starting fresh: %s",
+            DOMAIN,
+            err,
+            exc_info=True,
+        )
+        loaded_data_from_store = None
     stored_data_dict: dict[str, Any] = (
         loaded_data_from_store if loaded_data_from_store is not None else {}
     )
 
     async def save_persistent_data():
-        await store.async_save(stored_data_dict)
+        try:
+            await store.async_save(stored_data_dict)
+        except Exception as err:
+            _LOGGER.error(
+                "Failed to save persistent data for %s: %s",
+                DOMAIN,
+                err,
+                exc_info=True,
+            )
 
     entities_to_add = []
     for entity_id_str, entity_data_dict_any in list(stored_data_dict.items()):
@@ -89,11 +126,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     await save_persistent_data()
 
     async def handle_create_input_text(call: ServiceCall):
-        name_arg = call.data.get(CONF_NAME, DEFAULT_NAME)
+        name_arg = call.data[CONF_NAME]  # Guaranteed by schema
         text_arg = call.data.get(CONF_TEXT, "")
         title_arg = call.data.get(CONF_TITLE, name_arg)
 
-        object_id = name_arg.lower().replace(" ", "_")
+        max_length = entry.options.get(CONF_MAX_TEXT_LENGTH, DEFAULT_MAX_TEXT_LENGTH)
+        if len(text_arg) > max_length:
+            original_length = len(text_arg)
+            text_arg = text_arg[:max_length]
+            _LOGGER.warning(
+                "Text for '%s' was truncated from %d to %d characters (max_text_length=%d)",
+                name_arg,
+                original_length,
+                max_length,
+                max_length,
+            )
+
+        object_id = slugify(name_arg)
+        if not object_id:
+            raise HomeAssistantError(
+                f"The name '{name_arg}' produces an empty entity ID after normalization. "
+                "Please provide a name with at least one alphanumeric character."
+            )
         target_entity_id = f"{DOMAIN}.{object_id}"
 
         entry_entities_dict = hass.data[DOMAIN][entry.entry_id]
@@ -106,27 +160,38 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             entity.async_write_ha_state()
         else:
             _LOGGER.debug(
-                f"Creating new entity: {target_entity_id} with name '{name_arg}' and title '{title_arg}'"
+                "Creating new entity: %s with name '%s' and title '%s'",
+                target_entity_id, name_arg, title_arg,
             )
-            entity = LongTextInputEntity(
-                hass,
-                entry.entry_id,
-                name_arg,
-                title_arg,
-                text_arg,
-                stored_data_dict,  # Pass the mutable dict
-                save_persistent_data,  # Pass the save function
-            )
-            entry_entities_dict[entity.entity_id] = entity
-            await component.async_add_entities([entity])
+            try:
+                entity = LongTextInputEntity(
+                    hass,
+                    entry.entry_id,
+                    name_arg,
+                    title_arg,
+                    text_arg,
+                    stored_data_dict,
+                    save_persistent_data,
+                )
+                entry_entities_dict[entity.entity_id] = entity
+                await component.async_add_entities([entity])
+            except Exception as err:
+                _LOGGER.error(
+                    "Failed to create entity %s: %s",
+                    target_entity_id, err, exc_info=True,
+                )
+                raise HomeAssistantError(
+                    f"Failed to create entity '{name_arg}': {err}"
+                ) from err
 
     async def handle_delete_input_text(call: ServiceCall):
-        name_param = call.data.get(CONF_NAME)
-        if not name_param:
-            _LOGGER.error(f"{SERVICE_DELETE_INPUT_TEXT} requires '{CONF_NAME}'")
-            return
+        name_param = call.data[CONF_NAME]  # Guaranteed by schema
 
-        object_id_to_delete = name_param.lower().replace(" ", "_")
+        object_id_to_delete = slugify(name_param)
+        if not object_id_to_delete:
+            raise HomeAssistantError(
+                f"The name '{name_param}' produces an empty entity ID after normalization."
+            )
         entity_id_to_delete = f"{DOMAIN}.{object_id_to_delete}"
 
         entity_instance_to_delete = None
@@ -144,21 +209,25 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             hass.data[DOMAIN][source_entry_id_for_entity].pop(entity_id_to_delete, None)
             await component.async_remove_entity(entity_id_to_delete)
         else:
-            _LOGGER.warning(
-                f"Entity {entity_id_to_delete} not found in active entities."
-            )
             if entity_id_to_delete in stored_data_dict:
                 _LOGGER.info(
-                    f"Removing orphaned entity {entity_id_to_delete} from storage."
+                    "Removing orphaned entity %s from storage.",
+                    entity_id_to_delete,
                 )
                 stored_data_dict.pop(entity_id_to_delete, None)
                 await save_persistent_data()
+            else:
+                raise HomeAssistantError(
+                    f"Entity '{entity_id_to_delete}' not found."
+                )
 
     hass.services.async_register(
-        DOMAIN, SERVICE_CREATE_INPUT_TEXT, handle_create_input_text
+        DOMAIN, SERVICE_CREATE_INPUT_TEXT, handle_create_input_text,
+        schema=SERVICE_CREATE_SCHEMA,
     )
     hass.services.async_register(
-        DOMAIN, SERVICE_DELETE_INPUT_TEXT, handle_delete_input_text
+        DOMAIN, SERVICE_DELETE_INPUT_TEXT, handle_delete_input_text,
+        schema=SERVICE_DELETE_SCHEMA,
     )
 
     entry.async_on_unload(
@@ -167,6 +236,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     entry.async_on_unload(
         lambda: hass.services.async_remove(DOMAIN, SERVICE_DELETE_INPUT_TEXT)
     )
+
+    async def _async_options_updated(_hass: HomeAssistant, entry: ConfigEntry):
+        new_max = entry.options.get(CONF_MAX_TEXT_LENGTH, DEFAULT_MAX_TEXT_LENGTH)
+        _LOGGER.info("Enhanced Input max text length updated to %d", new_max)
+
+    entry.async_on_unload(entry.add_update_listener(_async_options_updated))
 
     return True
 
@@ -217,7 +292,7 @@ class LongTextInputEntity(Entity):
         self._stored_data_ref = stored_data_ref
         self._save_data_func = save_data_func
 
-        object_id_part = self._name.lower().replace(" ", "_")
+        object_id_part = slugify(self._name)
         self.entity_id = f"{DOMAIN}.{object_id_part}"
         self._attr_unique_id = f"{DOMAIN}_{object_id_part}"
 

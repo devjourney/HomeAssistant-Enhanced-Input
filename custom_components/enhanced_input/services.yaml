@@ -1,33 +1,34 @@
 create_input_text:
-  name: "Create Input Text"
-  description: "Create or update an input text entity."
+  name: "Create an Enhanced Input Text Blob"
+  description: "Create or update an enhanced input text entity."
   fields:
     name:
       name: "Name"
-      description: "The name of the input text entity."
+      description: "The name of the enhanced input text entity."
       example: "my_text"
+      required: true
       selector:
         text:
     title:
       name: "Title"
-      description: "The title to display as the state."
+      description: "The title to display as the state of the enhanced input text entity."
       example: "My Title"
       selector:
         text:
     text:
       name: "Text"
-      description: "The long text to store in the entity."
+      description: "The long text to store in the enhanced input text entity."
       example: "This is a long text."
       selector:
         text:
 
 delete_input_text:
-  name: "Delete Input Text"
-  description: "Delete an input text entity."
+  name: "Delete an Enhanced Input Text Blob"
+  description: "Delete an enhanced input text entity."
   fields:
     name:
       name: "Name"
-      description: "The name of the input text entity to delete."
+      description: "The name of the enhanced input text entity to delete."
       example: "my_text"
       required: true
       selector:
