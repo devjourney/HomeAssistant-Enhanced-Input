@@ -17,8 +17,8 @@ class EnhancedInputConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(step_id="user", data_schema=vol.Schema({}))
 
     @staticmethod
-    def async_get_options_flow(config_entry):
-        return EnhancedInputOptionsFlow(config_entry)
+    def async_get_options_flow(_config_entry):
+        return EnhancedInputOptionsFlow()
 
 
 class EnhancedInputOptionsFlow(config_entries.OptionsFlow):
